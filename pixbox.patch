@@ -1,0 +1,141 @@
+diff --git a/cpu/cyclone b/cpu/cyclone
+--- a/cpu/cyclone
++++ b/cpu/cyclone
+@@ -1 +1 @@
+-Subproject commit 590d780f20871b29fdc803bd2c74b046fd2d0f28
++Subproject commit 590d780f20871b29fdc803bd2c74b046fd2d0f28-dirty
+diff --git a/pico/media.c b/pico/media.c
+index 3ba4532..30db146 100644
+--- a/pico/media.c
++++ b/pico/media.c
+@@ -300,8 +300,9 @@ enum media_type_e PicoLoadMedia(const char *filename,
+     Pico.m.ncart_in = 1;
+   }
+ 
+-  if (PicoQuirks & PQUIRK_FORCE_6BTN)
++//  if (PicoQuirks & PQUIRK_FORCE_6BTN)
+     PicoSetInputDevice(0, PICO_INPUT_PAD_6BTN);
++    PicoSetInputDevice(1, PICO_INPUT_PAD_6BTN);
+ 
+ out:
+   if (rom_data)
+diff --git a/pico/memory.c b/pico/memory.c
+index 4f38e5e..dacf76e 100644
+--- a/pico/memory.c
++++ b/pico/memory.c
+@@ -259,7 +259,7 @@ void PicoSetInputDevice(int port, enum input_device device)
+ {
+   port_read_func *func;
+ 
+-  if (port < 0 || port > 2)
++/*  if (port < 0 || port > 2)
+     return;
+ 
+   switch (device) {
+@@ -267,14 +267,14 @@ void PicoSetInputDevice(int port, enum input_device device)
+     func = read_pad_3btn;
+     break;
+ 
+-  case PICO_INPUT_PAD_6BTN:
++  case PICO_INPUT_PAD_6BTN:*/
+     func = read_pad_6btn;
+-    break;
++/*    break;
+ 
+   default:
+     func = read_nothing;
+     break;
+-  }
++  }*/
+ 
+   port_readers[port] = func;
+ }
+diff --git a/platform/common/emu.c b/platform/common/emu.c
+index 7f375a3..8999111 100644
+--- a/platform/common/emu.c
++++ b/platform/common/emu.c
+@@ -451,8 +451,9 @@ int emu_reload_rom(const char *rom_fname_in)
+ 	}
+ 
+ 	// make quirks visible in UI
+-	if (PicoQuirks & PQUIRK_FORCE_6BTN)
++//	if (PicoQuirks & PQUIRK_FORCE_6BTN)
+ 		currentConfig.input_dev0 = PICO_INPUT_PAD_6BTN;
++		currentConfig.input_dev1 = PICO_INPUT_PAD_6BTN;
+ 
+ 	menu_romload_end();
+ 	menu_romload_started = 0;
+@@ -465,8 +466,8 @@ int emu_reload_rom(const char *rom_fname_in)
+ 	// additional movie stuff
+ 	if (movie_data)
+ 	{
+-		enum input_device indev = (movie_data[0x14] == '6') ?
+-			PICO_INPUT_PAD_6BTN : PICO_INPUT_PAD_3BTN;
++		enum input_device indev = /*(movie_data[0x14] == '6') ?*/
++			PICO_INPUT_PAD_6BTN /*: PICO_INPUT_PAD_3BTN*/;
+ 		PicoSetInputDevice(0, indev);
+ 		PicoSetInputDevice(1, indev);
+ 
+diff --git a/platform/common/menu_pico.c b/platform/common/menu_pico.c
+index b127077..b407678 100644
+--- a/platform/common/menu_pico.c
++++ b/platform/common/menu_pico.c
+@@ -1073,6 +1073,11 @@ static menu_entry e_menu_main[] =
+ 
+ void menu_loop(void)
+ {
++if(getenv("NO_MENU"))
++{
++engineState = PGS_Quit;
++return;
++}
+ 	static int sel = 0;
+ 
+ 	me_enable(e_menu_main, MA_MAIN_RESUME_GAME, PicoGameLoaded);
+diff --git a/platform/libpicofe b/platform/libpicofe
+--- a/platform/libpicofe
++++ b/platform/libpicofe
+@@ -1 +1 @@
+-Subproject commit 8b4363e302e6bbcf41321ec70f8c033efed5840d
++Subproject commit 8b4363e302e6bbcf41321ec70f8c033efed5840d-dirty
+diff --git a/platform/libretro.c b/platform/libretro.c
+index 23f0694..3b56f6e 100644
+--- a/platform/libretro.c
++++ b/platform/libretro.c
+@@ -643,10 +643,15 @@ static const char *find_bios(int *region, const char *cd_fname)
+ 		f = fopen(path, "rb");
+ 		if (f != NULL)
+ 			break;
++
++snprintf(path, sizeof(path), "/root/.picodrive/%s.bin", files[i]);
++		f = fopen(path, "rb");
++		if (f != NULL)
++			break;
+ 	}
+ 
+ 	if (f != NULL) {
+-		lprintf("using bios: %s\n", path);
++		printf("using bios: %s\n", path);
+ 		fclose(f);
+ 		return path;
+ 	}
+@@ -790,15 +795,15 @@ static void snd_write(int len)
+ 
+ static enum input_device input_name_to_val(const char *name)
+ {
+-	if (strcmp(name, "3 button pad") == 0)
++/*	if (strcmp(name, "3 button pad") == 0)
+ 		return PICO_INPUT_PAD_3BTN;
+-	if (strcmp(name, "6 button pad") == 0)
++	if (strcmp(name, "6 button pad") == 0)*/
+ 		return PICO_INPUT_PAD_6BTN;
+-	if (strcmp(name, "None") == 0)
++/*	if (strcmp(name, "None") == 0)
+ 		return PICO_INPUT_NOTHING;
+ 
+ 	lprintf("invalid picodrive_input: '%s'\n", name);
+-	return PICO_INPUT_PAD_3BTN;
++	return PICO_INPUT_PAD_3BTN;*/
+ }
+ 
+ static void update_variables(void)
